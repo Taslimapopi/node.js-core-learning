@@ -1,6 +1,7 @@
 import { createServer, IncomingMessage, Server, ServerResponse } from "http";
 import { url } from "inspector";
 import routeHandler from "./routes/route";
+import config from "./config";
 
 const server: Server = createServer(
   (req: IncomingMessage, res: ServerResponse) => {
@@ -8,6 +9,6 @@ const server: Server = createServer(
   },
 );
 
-server.listen(5000, () => {
-  console.log("server is listening successfully on port : 5000");
+server.listen(config.port, () => {
+  console.log(`server is listening successfully on port : ${config.port}`);
 });

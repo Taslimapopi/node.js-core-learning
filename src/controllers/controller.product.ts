@@ -3,6 +3,7 @@ import type { IncomingMessage, ServerResponse } from "node:http";
 import type { Iproduct } from "../types/product";
 import { bodyParser } from "../utils/bodyParser";
 import { createProduct, productService } from "../services/product.service";
+import { sendResponse } from "../utils/sendResponse";
 
 const productController = async (req: IncomingMessage, res: ServerResponse) => {
   const url = req.url;
@@ -35,15 +36,17 @@ const productController = async (req: IncomingMessage, res: ServerResponse) => {
 
     const products = productService();
 
-    res.writeHead(200, {
-      "content-type": "application/json",
-    });
-    res.end(
-      JSON.stringify({
-        message: "product retrieve successfully",
-        data: products,
-      }),
-    );
+    sendResponse(res, true, 200, "product retrieve successfully", products);
+
+    // res.writeHead(200, {
+    //   "content-type": "application/json",
+    // });
+    // res.end(
+    //   JSON.stringify({
+    //     message: "product retrieve successfully",
+    //     data: products,
+    //   }),
+    // );
   } else if (method === "GET" && id !== null) {
     const products = productService();
     const product = products.find((p: Iproduct) => p.id === id);
@@ -61,6 +64,39 @@ const productController = async (req: IncomingMessage, res: ServerResponse) => {
     const products = productService();
     const body = await bodyParser(req);
     const index = products.findIndex((p: Iproduct) => p.id === id);
+    if (index < 0) {
+      res.writeHead(404, { "content-type": "applicatio/json" });
+      res.end(JSON.stringify({ message: "product not found" }));
+    }
+    products[index] = {
+      id: products[index].id,
+      ...body,
+    };
+
+    createProduct(products);
+    res.writeHead(404, { "content-type": "applicatio/json" });
+    res.end(
+      JSON.stringify({
+        message: "product update successfully",
+        data: products[index],
+      }),
+    );
+  } else if (method === "DELETE" && id !== null) {
+    const products = productService();
+    const index = products.findIndex((p: Iproduct) => p.id === id);
+    if (index < 0) {
+      res.writeHead(404, { "content-type": "applicatio/json" });
+      res.end(JSON.stringify({ message: "product not found" }));
+    }
+    products.splice(index, 1);
+
+    createProduct(products);
+    res.writeHead(201, { "content-type": "applicatio/json" });
+    res.end(
+      JSON.stringify({
+        message: "product deleted successfully",
+      }),
+    );
   }
 };
 
